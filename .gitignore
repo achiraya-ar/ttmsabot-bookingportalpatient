@@ -1,0 +1,80 @@
+# Node dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production build / bundler cache
+dist/
+.vite/
+.cache/
+.build/
+out/
+public/build/
+
+# Vite / tooling
+.vite/
+.vite-temp/
+*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment / secrets
+.env
+.env.*
+.env.local
+.env.production.local
+.env.development.local
+
+# Common secret/key files
+*.key
+*.pem
+*.crt
+*.secret
+secrets/
+credentials.json
+credentials/
+aws-credentials
+google-services.json
+/firebase/
+.gcloud/
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+logs/
+*.log
+
+# Lockfiles (optional to ignore — keep if you want reproducible installs)
+# package-lock.json
+# yarn.lock
+
+# Coverage / test outputs
+coverage/
+jest-results/
+nyc_output/
+
+# Misc caches and generated files
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Build artifacts from other frameworks (safe to ignore)
+.node_repl_history
+dist-ssr/
+.next/
+.ionic/
+.terraform/
+
+# Ignore uploaded or exported assets that shouldn't be in repo
+uploads/
+tmp/
+cache/
