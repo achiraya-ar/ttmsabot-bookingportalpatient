@@ -179,7 +179,35 @@ export function useSupabase() {
       const allTimeSlots = new Set<string>()
       const therapistTimeMap: Record<string, Set<string>> = {}
 
+      // Include the currently effective version and upcoming versions within
+      // the booking window, so retired slots disappear once they are no longer in use.
+      const todayString = formatDateToYYYYMMDD(new Date())
+      const maxBookingDate = new Date()
+      maxBookingDate.setDate(maxBookingDate.getDate() + 30)
+      const maxBookingDateString = formatDateToYYYYMMDD(maxBookingDate)
+
+      const currentVersions = new Map<string, ScheduleVersionRow>()
+      const futureVersions: ScheduleVersionRow[] = []
+
       versionRows.forEach((row) => {
+        if (row.effective_from <= todayString) {
+          const key = `${row.therapist_name.trim()}|${row.day_of_week}`
+          const current = currentVersions.get(key)
+          if (
+            !current ||
+            row.effective_from > current.effective_from ||
+            (row.effective_from === current.effective_from && row.id > current.id)
+          ) {
+            currentVersions.set(key, row)
+          }
+        } else if (row.effective_from <= maxBookingDateString) {
+          futureVersions.push(row)
+        }
+      })
+
+      const activeVersions = [...currentVersions.values(), ...futureVersions]
+
+      activeVersions.forEach((row) => {
         const therapist = row.therapist_name.trim()
         const publicSlots = (row.time_slots ?? [])
           .map((slot) => slot.trim())
