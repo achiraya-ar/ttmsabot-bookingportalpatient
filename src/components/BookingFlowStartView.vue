@@ -106,6 +106,9 @@
           <button class="btn btn-secondary" @click="emit('back')">
             <i class="fa-solid fa-home"></i> กลับหน้าหลัก
           </button>
+          <button class="btn" @click="emit('go-to-my-bookings')">
+            <i class="fa-solid fa-list-check"></i> นัดหมายของฉัน
+          </button>
         </div>
       </div>
     </div>
@@ -126,6 +129,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'go-to-slots', opts: PageOptions): void
+  (e: 'go-to-my-bookings'): void
   (e: 'back'): void
   (e: 'update-filters', filters: Filters): void
 }>()

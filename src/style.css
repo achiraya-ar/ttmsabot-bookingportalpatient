@@ -640,6 +640,14 @@ input[readonly] {
     padding: 0.5rem 1rem;
     white-space: nowrap;
 }
+.patient-verify-hint {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+.patient-verify-hint.is-verified {
+    color: var(--status-green);
+}
 
 .modal-overlay {
     position: fixed;

@@ -45,6 +45,7 @@
           :patient="currentPatient"
           :initial-filters="currentFilters"
           @go-to-slots="(opts) => navigateTo('slots', opts)"
+          @go-to-my-bookings="navigateTo('myBookings')"
           @back="navigateTo('dashboard')"
           @update-filters="(f) => (currentFilters = f)"
         />
@@ -67,6 +68,8 @@
           :filters="pageOptions.filters || {}"
           :previously-booked-count="pageOptions.previouslyBookedCount || 0"
           @back="navigateTo('slots', pageOptions)"
+          @next-person="handleNextPerson"
+          @cancel-remaining="handleCancelRemaining"
           @booking-complete="handleBookingComplete"
         />
 
@@ -217,6 +220,14 @@ function handleLogout() {
 //  Booking Complete
 // ----------------------------------------------------------------
 function handleBookingComplete() {
+  navigateTo('dashboard')
+}
+
+function handleNextPerson(options: PageOptions) {
+  navigateTo('slots', options)
+}
+
+function handleCancelRemaining() {
   navigateTo('dashboard')
 }
 
