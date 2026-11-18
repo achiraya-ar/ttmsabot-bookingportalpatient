@@ -276,6 +276,7 @@ export function useSupabase() {
         { data: versionsData, error: e2 },
         { data: bookingsData, error: e3 },
         { data: blockagesData, error: e4 },
+        { data: noteHoldsData, error: e5 },
       ] = await Promise.all([
         supabase
           .from('holidays')
@@ -298,11 +299,19 @@ export function useSupabase() {
           .select('block_date, block_time, therapist_name')
           .gte('block_date', firstDayOfMonth)
           .lte('block_date', lastDayOfMonth),
+        // Slots held by a staff note after the booking was cancelled.
+        // The view exposes no note text or patient data.
+        supabase
+          .from('booking_note_holds')
+          .select('booking_date, booking_time, therapist_name')
+          .gte('booking_date', firstDayOfMonth)
+          .lte('booking_date', lastDayOfMonth),
       ])
 
       const error = e1 || e3 || e4
       if (error) throw error
       if (e2 && !isMissingTableError(e2)) throw e2
+      if (e5 && !isMissingTableError(e5)) throw e5
 
       const todayString = formatDateToYYYYMMDD(new Date())
       const maxBookingDate = new Date()
@@ -351,6 +360,9 @@ export function useSupabase() {
         const blockagesOnDate = (blockagesData ?? []).filter(
           (bl: { block_date: string }) => bl.block_date === dateString,
         )
+        const noteHoldsOnDate = (noteHoldsData ?? []).filter(
+          (n: { booking_date: string }) => n.booking_date === dateString,
+        )
 
         const timeSlotsToday = new Set<string>()
         todaysSchedules.forEach((s: { time_slots: string[] | null }) => {
@@ -377,7 +389,11 @@ export function useSupabase() {
                 (bl: { block_time: string; therapist_name: string }) =>
                   bl.block_time.slice(0, 5) === time && bl.therapist_name.trim() === therapistName,
               )
-              if (!isBooked && !isBlocked) availableTherapists++
+              const isNoteHeld = noteHoldsOnDate.some(
+                (n: { booking_time: string; therapist_name: string }) =>
+                  n.booking_time.slice(0, 5) === time && n.therapist_name.trim() === therapistName,
+              )
+              if (!isBooked && !isBlocked && !isNoteHeld) availableTherapists++
             }
           }
 
@@ -456,6 +472,7 @@ export function useSupabase() {
         { data: bookingsOnDate, error: e1 },
         { data: blockedSlotsForDate, error: e2 },
         { data: allVersions, error: e3 },
+        { data: noteHoldsOnDate, error: e4 },
       ] = await Promise.all([
         supabase
           .from('bookings')
@@ -471,11 +488,17 @@ export function useSupabase() {
             'id, therapist_name, day_of_week, time_slots, visibility, slot_visibility, effective_from',
           )
           .lte('effective_from', dateString),
+        // Held by a staff note after the booking was cancelled.
+        supabase
+          .from('booking_note_holds')
+          .select('booking_time, therapist_name')
+          .eq('booking_date', dateString),
       ])
 
       const error = e1 || e2
       if (error) throw error
       if (e3 && !isMissingTableError(e3)) throw e3
+      if (e4 && !isMissingTableError(e4)) throw e4
 
       const todaysSchedules = resolveEffectiveSchedules(
         dateString,
@@ -533,7 +556,12 @@ export function useSupabase() {
               (b: { block_time: string; therapist_name: string }) =>
                 b.block_time.slice(0, 5) === time && b.therapist_name.trim() === therapistName,
             )
-            slotInfo.availability[therapistName] = isBooked || isBlocked ? 'FULL' : 'AVAILABLE'
+            const isNoteHeld = (noteHoldsOnDate ?? []).some(
+              (n: { booking_time: string; therapist_name: string }) =>
+                n.booking_time.slice(0, 5) === time && n.therapist_name.trim() === therapistName,
+            )
+            slotInfo.availability[therapistName] =
+              isBooked || isBlocked || isNoteHeld ? 'FULL' : 'AVAILABLE'
           } else {
             slotInfo.availability[therapistName] = 'NOT_AVAILABLE'
           }
